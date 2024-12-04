@@ -3,41 +3,33 @@ f = open("input.txt", "r")
 text = f.read()
 textCopy = text[:]
 res = 0
-pattern = r"mul\(-?\d+,-?\d+\)"
-matches = re.findall(pattern, text)
-doIndexes = []
-dontIndexes = []
 
-while True:
-    do = textCopy.find("do()")
-    if do != -1:
-        doIndexes.append(do)
-        textCopy = textCopy[do+1:]
-        continue
-    break
-textCopy = text[:]
-while True:
-    dont = textCopy.find("don't()")
-    if dont != -1:
-        dontIndexes.append(dont)
-        textCopy = textCopy[dont + 1:]
-        continue
-    break
-    
-for match in matches:
-    left = match.find('(')
-    right = match.find(')')
-    comma = match.find(',')
-    
-    # check if mul is invalid
-    # find closest dont to the left that doesnt have a do after
-    matchIndex = text.find(match)
-    if (any(idx < matchIndex for idx in dontIndexes) and any(idx > matchIndex for idx in doIndexes)):
-        continue
+pattern_do = r"do\(\)"
+pattern_dont = r"don't\(\)"
+matchPattern = r"mul\(-?\d+,-?\d+\)"
 
-    operand1 = match[left + 1:comma]
-    operand2 = match[comma+1:right]
+doIndexes = [match.start() for match in re.finditer(pattern_do, text)]
+dontIndexes = [match.start() for match in re.finditer(pattern_dont, text)]
+matches = [(match.group(), match.start(), match.end()) for match in re.finditer(matchPattern, text)]
 
-    res += int(operand1) * int(operand2)
+
+allIndexes = [(i, 'dont', None) for i in dontIndexes] + [(i, 'do', None) for i in doIndexes] + [(start, 'match', match) for match, start,_ in matches]
+allIndexes.sort()
+
+enabled = True
+for idx, kind, match in allIndexes:
+    if kind == 'dont':
+        enabled = False
+    elif kind == 'do':
+        enabled = True
+    elif kind == 'match' and enabled:
+        left = match.find('(')
+        right = match.find(')')
+        comma = match.find(',')
+        
+        operand1 = match[left + 1:comma]
+        operand2 = match[comma+1:right]
+
+        res += int(operand1) * int(operand2)
 
 print(res)
