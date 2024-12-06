@@ -30,6 +30,22 @@ for order in orderingsParsed:
     if not isSafe:
         nonSafeOrders.append(order)
 
+correctedOrders = []
+for order in nonSafeOrders:
+    newOrder = []
+    c = 0
+    for i in range(len(order)):
+        for j in range(len(order)):
+            if order[j] in dct[order[i]]:
+                c += 1
+        newOrder.append((c, order[i]))
+        c = 0
+    correctedOrders.append([o for _, o in sorted(newOrder, reverse=True)])
+
 res = 0
 
-print(nonSafeOrders)
+for order in correctedOrders:
+    res += order[len(order) // 2]
+
+print(res)
+
